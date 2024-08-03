@@ -1,130 +1,131 @@
-// a simple bank management system ig
-
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
+typedef struct {
+    int accountNumber;
+    char name[100];
+    float balance;
+} Account;
 void createAccount();
 void depositMoney();
 void withdrawMoney();
 void checkBalance();
-void deleteAccount();
-
-struct 
-{
-    double num;
-    char name[20];
-    float bal; 
-} acc;
-
-int main()
-{
-    printf("%d",sizeof(acc.num));
+int main() {
     int choice;
+    while (1) {
+        printf("\nBank Account Management System\n");
+        printf("1. Create a new account\n");
+        printf("2. Deposit money\n");
+        printf("3. Withdraw money\n");
+        printf("4. Check balance\n");
+        printf("5. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
 
-    printf("Hey! What you wanna do? \n");
-    printf("1. Create Account?\n");
-    printf("2. Check Balance\n");
-    printf("3. Deposit Money\n");
-    printf("4. Withdraw Money\n");
-    printf("5. delete Account\n");
-    printf("6. Exit\n");
-    scanf("%d",&choice);
-
-    switch (choice)
-    {
-    case 1: 
-        createAccount();
-        break;
-    case 2: 
-        checkBalance();
-        break;
-    case 3: 
-        depositMoney();
-        break;
-    case 4: 
-        withdrawMoney();
-        break;
-    case 5: 
-        deleteAccount();
-        break;    
-    case 6: 
-        return 0;
-        break;
-    default:
-        printf("Invalid input \n");  
-        main();
-        break;
-    }
-}
-
-void createAccount()
-{
-    acc;
-    FILE *f;
-    f = fopen("Accounts.txt","a");
-
-    printf("Enter Account number\n");
-    scanf("%d",&acc.num);
-    printf("Enter Name\n");
-    scanf("%s",&acc.name);
-    acc.bal = 0.0;
-
-    fprintf(f, "{\n\tacc_num = %d,\n\tname = %s,\n\tbalance = %.2f\n}",acc.num,acc.name,acc.bal);
-    fclose(f);
-}
-
-void depositMoney()
-{
-    FILE *f;
-    f = fopen("Accounts.txt","w+");
-    acc;
-    double num;
-    printf("Enter the amount you want to deposit\n");
-    scanf("%lu",num);
-    acc.bal += num;
-}
-void withdrawMoney()
-{
-    acc;
-    double num;
-    FILE *f;
-    f = fopen("Accounts.txt","w+");
-
-    
-    printf("Enter the amount you want to withdraw\n");
-    scanf("%lu",num);
-    acc.bal -= num;
-}
-void checkBalance()
-{   
-    acc;
-    char line[255];
-    double bal;
-
-    FILE *f;
-    f = fopen("Accounts.txt","r");
-    while(fgets(line, sizeof(line),f))
-    {
-        if(strstr(line, " balance")!= NULL)
-        {
-            sscanf(line, " balance = %lf,",&bal);
+        switch (choice) {
+            case 1: createAccount(); break;
+            case 2: depositMoney(); break;
+            case 3: withdrawMoney(); break;
+            case 4: checkBalance(); break;
+            case 5: exit(0);
+            default: printf("Invalid choice! Please try again.\n");
         }
     }
-    printf("%.2lf",bal);
-    fclose(f); 
+    return 0;
 }
-void deleteAccount()
-{
-    if(("Accounts.txt")==NULL)
-    {
-        printf("Account not found\n");
+void createAccount() {
+    Account acc;
+    FILE *file = fopen("accounts.dat", "ab");
+
+    printf("Enter account number: ");
+    scanf("%d", &acc.accountNumber);
+    printf("Enter name: ");
+    scanf("%s", acc.name);
+    acc.balance = 0.0;
+
+    fwrite(&acc, sizeof(Account), 1, file);
+    fclose(file);
+
+    printf("Account created successfully!\n");
+}
+void depositMoney() {
+    int accountNumber;
+    float amount;
+    Account acc;
+    FILE *file = fopen("accounts.dat", "rb+");
+
+    printf("Enter account number: ");
+    scanf("%d", &accountNumber);
+
+    while (fread(&acc, sizeof(Account), 1, file)) {
+        if (acc.accountNumber == accountNumber) {
+            printf("Enter amount to deposit: ");
+            scanf("%f", &amount);
+            acc.balance += amount;
+
+            fseek(file, -sizeof(Account), SEEK_CUR);
+            fwrite(&acc, sizeof(Account), 1, file);
+            fclose(file);
+
+            printf("Amount deposited successfully!\n");
+            return;
+        }
     }
-    else if(remove("Accounts.txt")==0)
-    {
-        printf("Account deleted successfully\n");
+
+    printf("Account not found!\n");
+    fclose(file);
+}
+void withdrawMoney() {
+    int accountNumber;
+    float amount;
+    Account acc;
+    FILE *file = fopen("accounts.dat", "rb+");
+
+    printf("Enter account number: ");
+    scanf("%d", &accountNumber);
+
+    while (fread(&acc, sizeof(Account), 1, file)) {
+        if (acc.accountNumber == accountNumber) {
+            printf("Enter amount to withdraw: ");
+            scanf("%f", &amount);
+
+            if (amount > acc.balance) {
+                printf("Insufficient balance!\n");
+            } else {
+                acc.balance -= amount;
+
+                fseek(file, -sizeof(Account), SEEK_CUR);
+                fwrite(&acc, sizeof(Account), 1, file);
+                fclose(file);
+
+                printf("Amount withdrawn successfully!\n");
+                return;
+            }
+        }
     }
-    else
-    {
-        printf("Account couldn't be deleted successfully\n");
-    }    
+
+    printf("Account not found!\n");
+    fclose(file);
+}
+void checkBalance() {
+    int accountNumber;
+    Account acc;
+    FILE *file = fopen("accounts.dat", "rb");
+
+    printf("Enter account number: ");
+    scanf("%d", &accountNumber);
+
+    while (fread(&acc, sizeof(Account), 1, file)) {
+        if (acc.accountNumber == accountNumber) {
+            printf("Account Number: %d\n", acc.accountNumber);
+            printf("Name: %s\n", acc.name);
+            printf("Balance: %.2f\n", acc.balance);
+            fclose(file);
+            return;
+        }
+    }
+
+    printf("Account not found!\n");
+    fclose(file);
 }

@@ -1,6 +1,7 @@
 // a simple bank management system ig
 
 #include <stdio.h>
+#include <string.h>
 
 void createAccount();
 void depositMoney();
@@ -35,10 +36,10 @@ int main()
         createAccount();
         break;
     case 2: 
-        depositMoney();
+        checkBalance();
         break;
     case 3: 
-        createAccount();
+        depositMoney();
         break;
     case 4: 
         withdrawMoney();
@@ -60,7 +61,7 @@ void createAccount()
 {
     acc;
     FILE *f;
-    f = fopen("Accounts.txt","w");
+    f = fopen("Accounts.txt","a");
 
     printf("Enter Account number\n");
     scanf("%d",&acc.num);
@@ -68,12 +69,14 @@ void createAccount()
     scanf("%s",&acc.name);
     acc.bal = 0.0;
 
-    fprintf(f, "{%d,\n%s,\n%.2f}",acc.num,acc.name,acc.bal);
+    fprintf(f, "{\n\tacc_num = %d,\n\tname = %s,\n\tbalance = %.2f\n}",acc.num,acc.name,acc.bal);
     fclose(f);
 }
 
 void depositMoney()
 {
+    FILE *f;
+    f = fopen("Accounts.txt","w+");
     acc;
     double num;
     printf("Enter the amount you want to deposit\n");
@@ -84,6 +87,10 @@ void withdrawMoney()
 {
     acc;
     double num;
+    FILE *f;
+    f = fopen("Accounts.txt","w+");
+
+    
     printf("Enter the amount you want to withdraw\n");
     scanf("%lu",num);
     acc.bal -= num;
@@ -91,16 +98,33 @@ void withdrawMoney()
 void checkBalance()
 {   
     acc;
-    printf("%lu",acc.bal);
+    char line[255];
+    double bal;
+
+    FILE *f;
+    f = fopen("Accounts.txt","r");
+    while(fgets(line, sizeof(line),f))
+    {
+        if(strstr(line, " balance")!= NULL)
+        {
+            sscanf(line, " balance = %lf,",&bal);
+        }
+    }
+    printf("%.2lf",bal);
+    fclose(f); 
 }
 void deleteAccount()
 {
-    if(("Accounts.txt")!=NULL)
-    printf("Account not found\n");
-
+    if(("Accounts.txt")==NULL)
+    {
+        printf("Account not found\n");
+    }
     else if(remove("Accounts.txt")==0)
-    printf("Account deleted successfully\n");
-
+    {
+        printf("Account deleted successfully\n");
+    }
     else
-    printf("Account couldn't be deleted successfully\n");
+    {
+        printf("Account couldn't be deleted successfully\n");
+    }    
 }
